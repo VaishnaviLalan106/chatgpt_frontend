@@ -41,8 +41,14 @@ const Signup = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setStatus({ loading: false, type: "success", message: "Account created successfully! Redirecting..." });
-                setTimeout(() => navigate("/login"), 2000);
+                setStatus({ loading: false, type: "success", message: "Account created! Logging you in..." });
+
+                // Auto-login after signup if tokens provided
+                if (data.access_token) localStorage.setItem("access_token", data.access_token);
+                if (data.token_type) localStorage.setItem("token_type", data.token_type);
+                if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
+
+                setTimeout(() => navigate("/"), 1000);
             } else {
                 setStatus({ loading: false, type: "error", message: data.detail || data.message || "Signup failed. Please try again." });
             }

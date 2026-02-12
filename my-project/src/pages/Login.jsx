@@ -20,6 +20,9 @@ const Login = () => {
         setStatus({ loading: true, type: "", message: "" });
 
         try {
+            console.log("Attempting login to:", "http://127.0.0.1:8000/login");
+            console.log("Request Payload:", JSON.stringify({ email: formData.email, password: "..." }));
+
             const response = await fetch("http://127.0.0.1:8000/login", {
                 method: "POST",
                 headers: {
@@ -31,17 +34,38 @@ const Login = () => {
                 }),
             });
 
+            console.log("Response Status:", response.status);
             const data = await response.json();
 
             if (response.ok) {
+                console.log("Login Success. Data received:", data);
                 setStatus({ loading: false, type: "success", message: "Login successful! Redirecting..." });
-                // If there's a token, you'd store it here (e.g., localStorage.setItem('token', data.token))
+
+                // Store tokens in localStorage
+                if (data.access_token) localStorage.setItem("access_token", data.access_token);
+                if (data.token_type) localStorage.setItem("token_type", data.token_type);
+                if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
+
+                console.log("Tokens stored in localStorage:", {
+                    access_token: !!localStorage.getItem("access_token"),
+                    token_type: !!localStorage.getItem("token_type"),
+                    refresh_token: !!localStorage.getItem("refresh_token")
+                });
+
                 setTimeout(() => navigate("/"), 1500);
             } else {
+                console.error("Login Error Details:", data);
                 setStatus({ loading: false, type: "error", message: data.detail || data.message || "Login failed. Please check your credentials." });
             }
         } catch (error) {
-            setStatus({ loading: false, type: "error", message: "Unable to connect to the server." });
+            console.error("Network/Fetch Exception:", error);
+            setStatus({
+                loading: false,
+                type: "error",
+                message: error.message === "Failed to fetch"
+                    ? "Failed to connect to backend. Please ensure the server at http://127.0.0.1:8000 is running and CORS is enabled."
+                    : "An unexpected error occurred: " + error.message
+            });
         }
     };
 
@@ -165,7 +189,6 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* Custom Animations in Style Tag for simplicity in one file */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes fadeIn {
