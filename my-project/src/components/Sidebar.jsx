@@ -115,7 +115,12 @@ const Sidebar = ({ isOpen, setIsOpen, isLoggedIn, onLogout, history, deleteChat,
                         History
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
-                        {Array.isArray(history) && history.length > 0 ? (
+                        {loading ? (
+                            <div className="px-3 py-10 text-center space-y-3">
+                                <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto opacity-50" />
+                                <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest italic">Loading history...</p>
+                            </div>
+                        ) : Array.isArray(history) && history.length > 0 ? (
                             history.map((chat) => (
                                 <div
                                     key={chat.id}

@@ -30,8 +30,9 @@ const DashboardLayout = () => {
         const checkAuth = () => {
             const token = localStorage.getItem("access_token");
             const loggedIn = !!token;
-            console.log("Checking auth status. Token exists:", loggedIn, "Current state:", isLoggedIn);
+            console.log("DashboardLayout: Checking auth status. Token exists:", loggedIn, "Current React State isLoggedIn:", isLoggedIn);
             if (loggedIn !== isLoggedIn) {
+                console.log("DashboardLayout: Updating isLoggedIn state to", loggedIn);
                 setIsLoggedIn(loggedIn);
             }
         };
@@ -39,14 +40,18 @@ const DashboardLayout = () => {
         checkAuth();
         window.addEventListener('storage', checkAuth);
         return () => window.removeEventListener('storage', checkAuth);
-    }, [location, isLoggedIn]);
+    }, [location.pathname, isLoggedIn]); // Optimized dependency
 
     // Fetch history when logged in
     useEffect(() => {
         if (isLoggedIn) {
+            console.log("DashboardLayout: User is logged in, fetching history...");
             fetchHistory();
+        } else {
+            console.log("DashboardLayout: User not logged in, clearing history state.");
+            clearHistory();
         }
-    }, [isLoggedIn, fetchHistory]);
+    }, [isLoggedIn, fetchHistory, clearHistory]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

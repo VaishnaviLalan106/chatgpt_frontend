@@ -9,6 +9,7 @@ import {
     MessageSquare,
     Lock
 } from "lucide-react";
+import { API_BASE } from "../config";
 // import { useChatHistory } from "../hooks/useChatHistory"; // Removed
 
 const Askai = () => {
@@ -117,7 +118,7 @@ const Askai = () => {
             });
 
             // 2. Get AI response
-            const response = await fetch("http://localhost:8000/ask", {
+            const response = await fetch(`${API_BASE}/ask`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

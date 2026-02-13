@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { API_BASE } from "../config";
 
 export const useChatHistory = () => {
     const [history, setHistory] = useState([]);
@@ -10,11 +11,11 @@ export const useChatHistory = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem("access_token");
-            console.log("Fetching history. Query:", searchQuery, "Token present:", !!token);
+            console.log("Fetching history. Base URL:", API_BASE, "Query:", searchQuery, "Token present:", !!token);
 
             const url = searchQuery
-                ? `http://localhost:8000/chats/?q=${encodeURIComponent(searchQuery)}`
-                : "http://localhost:8000/chats/";
+                ? `${API_BASE}/chats/?q=${encodeURIComponent(searchQuery)}`
+                : `${API_BASE}/chats/`;
 
             const response = await fetch(url, {
                 headers: {
@@ -47,7 +48,7 @@ export const useChatHistory = () => {
         if (!token) return null;
 
         try {
-            const response = await fetch("http://localhost:8000/chats/", {
+            const response = await fetch(`${API_BASE}/chats/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -79,7 +80,7 @@ export const useChatHistory = () => {
         if (!token) return;
 
         try {
-            const response = await fetch(`http://localhost:8000/chats/${chatId}`, {
+            const response = await fetch(`${API_BASE}/chats/${chatId}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`

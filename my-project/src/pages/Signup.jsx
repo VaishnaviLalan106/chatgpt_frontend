@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Github, UserPlus, ArrowRight, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { API_BASE } from "../config";
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ const Signup = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8000/signup", {
+            const response = await fetch(`${API_BASE}/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

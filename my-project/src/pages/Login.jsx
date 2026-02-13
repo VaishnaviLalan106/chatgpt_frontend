@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Github, LogIn, ArrowRight, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { API_BASE } from "../config";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -20,10 +21,10 @@ const Login = () => {
         setStatus({ loading: true, type: "", message: "" });
 
         try {
-            console.log("Attempting login to:", "http://localhost:8000/login");
+            console.log("Attempting login to:", `${API_BASE}/login`);
             console.log("Request Payload:", JSON.stringify({ email: formData.email, password: "..." }));
 
-            const response = await fetch("http://localhost:8000/login", {
+            const response = await fetch(`${API_BASE}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
