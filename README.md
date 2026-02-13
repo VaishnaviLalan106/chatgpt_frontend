@@ -45,3 +45,16 @@ The frontend communicates with a separately deployed backend API that securely i
 3. **Start development server**
    npm start
 4. **Update backend API URL in your Axios cofig.**
+
+---
+
+## 👩‍💻 Author
+
+Developed by **Vaishnavi L**, 3rd Year Computer Science student, as part of a full-stack AI-powered chat application with authentication and database integration.
+
+---
+## 📜 License
+
+This project is licensed under the MIT License — you are free to use, modify, and distribute this software with proper attribution.
+
+---
