@@ -64,7 +64,7 @@ const Login = () => {
                 loading: false,
                 type: "error",
                 message: error.message === "Failed to fetch"
-                    ? "Failed to connect to backend. Please ensure the server at http://localhost:8000 is running and CORS is enabled."
+                    ? `Failed to connect to backend. Please ensure the server at ${API_BASE} is running and CORS is enabled.`
                     : "An unexpected error occurred: " + error.message
             });
         }

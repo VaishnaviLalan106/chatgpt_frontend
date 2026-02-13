@@ -12,7 +12,8 @@ import {
     Info,
     Mail,
     PanelLeftClose,
-    X
+    X,
+    Loader2
 } from "lucide-react";
 
 

@@ -46,7 +46,7 @@ const Askai = () => {
             setLoading(true);
             try {
                 const token = localStorage.getItem("access_token");
-                const response = await fetch(`http://localhost:8000/chats/${chatId}`, {
+                const response = await fetch(`${API_BASE}/chats/${chatId}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 if (response.ok) {
@@ -108,7 +108,7 @@ const Askai = () => {
             const token = localStorage.getItem("access_token");
 
             // 1. Save user message to backend
-            await fetch(`http://localhost:8000/chats/${currentChatId}/messages`, {
+            await fetch(`${API_BASE}/chats/${currentChatId}/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -133,7 +133,7 @@ const Askai = () => {
             const aiContent = data.response || "Hmm, I couldn't figure that out 🤔";
 
             // 3. Save AI response to backend
-            await fetch(`http://localhost:8000/chats/${currentChatId}/messages`, {
+            await fetch(`${API_BASE}/chats/${currentChatId}/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -151,7 +151,7 @@ const Askai = () => {
             console.error("AI Error:", error);
             setMessages((prev) => [
                 ...prev,
-                { role: "assistant", content: "Oops! I can't reach the server right now 😅 Make sure the backend is running at http://localhost:8000" }
+                { role: "assistant", content: `Oops! I can't reach the server right now 😅 Make sure the backend is running at ${API_BASE}` }
             ]);
         } finally {
             setLoading(false);
