@@ -45,7 +45,7 @@ const Dashboard = () => {
                             you with?
                         </span>
                     </h1>
-                    <p className="text-zinc-500 text-sm md:text-base font-medium">Ask anything — I'm here to help ✨</p>
+                    <p className="text-zinc-500 text-xs md:text-sm font-medium">Ask anything — I'm here to help ✨</p>
                 </div>
 
                 {/* Suggestions */}
