@@ -183,10 +183,10 @@ const Sidebar = ({ isOpen, setIsOpen, isLoggedIn, onLogout, history, deleteChat,
 const SidebarItem = ({ icon, label, onClick, active }) => (
     <button
         onClick={onClick}
-        className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl transition-all group ${active ? 'bg-white/5 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+        className={`flex items-center gap-4 w-full px-5 py-3.5 rounded-xl transition-all group ${active ? 'bg-white/5 text-white shadow-lg shadow-blue-500/10' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
     >
-        <span className={`${active ? 'text-blue-400' : 'group-hover:text-blue-400'} transition-colors`}>{icon}</span>
-        <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+        <span className={`${active ? 'text-blue-400' : 'group-hover:text-blue-400'} transition-colors [&>svg]:w-5 [&>svg]:h-5`}>{icon}</span>
+        <span className="text-xs font-black uppercase tracking-widest leading-none">{label}</span>
     </button>
 );
 

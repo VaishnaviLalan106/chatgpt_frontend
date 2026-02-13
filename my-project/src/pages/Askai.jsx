@@ -120,7 +120,10 @@ const Askai = () => {
             // 2. Get AI response
             const response = await fetch(`${API_BASE}/ask`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     message: query,
                     system_prompt: "You are Dobby, a friendly, warm, and conversational AI assistant. Talk naturally like a real person — use casual language, emojis, and keep things fun and engaging. Be concise but helpful. Do NOT use markdown formatting like headers, bullet points, or bold text. Just talk like a human friend would in a chat."
@@ -162,7 +165,7 @@ const Askai = () => {
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto custom-scrollbar pt-16 pb-6">
-                <div className="max-w-3xl mx-auto px-6 space-y-8">
+                <div className="max-w-5xl mx-auto px-6 space-y-8">
                     {messages.length === 0 && !loading && (
                         <div className="flex flex-col items-center justify-center py-28 space-y-4 animate-[fadeIn_0.5s_ease-out]">
                             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -184,7 +187,7 @@ const Askai = () => {
                                     }`}>
                                     {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                                 </div>
-                                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
+                                <div className={`px-7 py-5 rounded-2xl text-lg md:text-xl leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
                                     ? 'bg-blue-600/20 text-white border border-blue-500/20 rounded-tr-sm'
                                     : 'bg-white/[0.06] text-zinc-200 border border-white/5 rounded-tl-sm'
                                     }`}>
@@ -211,7 +214,7 @@ const Askai = () => {
 
             {/* Input Area */}
             <div className="px-6 pb-6 pt-2 flex-shrink-0">
-                <div className="relative group max-w-3xl mx-auto">
+                <div className="relative group max-w-5xl mx-auto">
                     <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-sm opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
                     <div className="relative bg-[#0c0f16]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 flex items-center gap-2 shadow-2xl">
                         <input
@@ -220,7 +223,7 @@ const Askai = () => {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
                             placeholder="Send a message..."
-                            className="flex-1 bg-transparent border-none text-white placeholder-zinc-600 outline-none text-sm font-medium py-2 px-3"
+                            className="flex-1 bg-transparent border-none text-white placeholder-zinc-600 outline-none text-lg md:text-xl font-medium py-4 px-5"
                             disabled={loading}
                         />
                         <button
@@ -228,7 +231,7 @@ const Askai = () => {
                             disabled={loading || !input.trim()}
                             className={`p-2.5 rounded-xl transition-all duration-300 ${input.trim() && !loading ? "bg-blue-600 text-white shadow-lg hover:bg-blue-500" : "bg-white/5 text-zinc-700"}`}
                         >
-                            <Send className="w-4 h-4" />
+                            <Send className="w-6 h-6" />
                         </button>
                     </div>
                 </div>
