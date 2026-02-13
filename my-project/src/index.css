@@ -1,8 +1,354 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ═══════════════════════════════════════════════════
+   THEME SYSTEM — CSS Custom Properties
+   Three themes: dark (default), midnight (black), ocean (light blue)
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Dark Theme (Default) ─── */
+:root,
+[data-theme="dark"] {
+    --bg-gradient: linear-gradient(135deg, #0a0e1a 0%, #0d1525 30%, #0f1a2e 60%, #0a0e1a 100%);
+    --bg-header: rgba(10, 14, 26, 0.5);
+    --bg-sidebar: rgba(10, 14, 26, 0.7);
+    --bg-surface: rgba(15, 23, 42, 0.5);
+    --bg-surface-solid: rgba(15, 23, 42, 0.95);
+    --bg-card: rgba(148, 163, 184, 0.03);
+    --bg-card-hover: rgba(148, 163, 184, 0.06);
+    --bg-input: rgba(148, 163, 184, 0.04);
+    --bg-input-focus: rgba(148, 163, 184, 0.08);
+    --bg-dropdown: rgba(15, 23, 42, 0.95);
+    --bg-btn-hover: rgba(255, 255, 255, 0.05);
+
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-dim: #475569;
+    --text-heading: #ffffff;
+    --text-label: #94a3b8;
+
+    --border-subtle: rgba(148, 163, 184, 0.06);
+    --border-medium: rgba(148, 163, 184, 0.08);
+    --border-input: rgba(148, 163, 184, 0.06);
+    --border-input-focus: rgba(59, 130, 246, 0.2);
+
+    --blob-1: rgba(59, 130, 246, 0.12);
+    --blob-2: rgba(99, 102, 241, 0.10);
+    --blob-3: rgba(147, 197, 253, 0.06);
+    --blob-grid: rgba(148, 163, 184, 0.5);
+    --blob-horizon: rgba(59, 130, 246, 0.03);
+
+    --chat-user-bg: rgba(59, 130, 246, 0.08);
+    --chat-ai-bg: rgba(148, 163, 184, 0.04);
+    --chat-user-border: rgba(59, 130, 246, 0.12);
+    --chat-ai-border: rgba(148, 163, 184, 0.06);
+
+    --selection-bg: rgba(99, 149, 255, 0.3);
+    --selection-color: #e2e8f0;
+    --scrollbar-thumb: rgba(99, 149, 255, 0.1);
+    --scrollbar-thumb-hover: rgba(99, 149, 255, 0.25);
+}
+
+/* ─── Midnight Theme (Pure Black) ─── */
+[data-theme="midnight"] {
+    --bg-gradient: linear-gradient(135deg, #000000 0%, #050508 30%, #08080f 60%, #000000 100%);
+    --bg-header: rgba(0, 0, 0, 0.6);
+    --bg-sidebar: rgba(0, 0, 0, 0.8);
+    --bg-surface: rgba(8, 8, 12, 0.7);
+    --bg-surface-solid: rgba(8, 8, 12, 0.95);
+    --bg-card: rgba(255, 255, 255, 0.02);
+    --bg-card-hover: rgba(255, 255, 255, 0.04);
+    --bg-input: rgba(255, 255, 255, 0.03);
+    --bg-input-focus: rgba(255, 255, 255, 0.06);
+    --bg-dropdown: rgba(8, 8, 12, 0.97);
+    --bg-btn-hover: rgba(255, 255, 255, 0.05);
+
+    --text-primary: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --text-dim: #52525b;
+    --text-heading: #fafafa;
+    --text-label: #a1a1aa;
+
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-medium: rgba(255, 255, 255, 0.06);
+    --border-input: rgba(255, 255, 255, 0.05);
+    --border-input-focus: rgba(99, 102, 241, 0.25);
+
+    --blob-1: rgba(99, 102, 241, 0.06);
+    --blob-2: rgba(139, 92, 246, 0.04);
+    --blob-3: rgba(59, 130, 246, 0.03);
+    --blob-grid: rgba(255, 255, 255, 0.2);
+    --blob-horizon: rgba(99, 102, 241, 0.02);
+
+    --chat-user-bg: rgba(99, 102, 241, 0.06);
+    --chat-ai-bg: rgba(255, 255, 255, 0.02);
+    --chat-user-border: rgba(99, 102, 241, 0.1);
+    --chat-ai-border: rgba(255, 255, 255, 0.04);
+
+    --selection-bg: rgba(139, 92, 246, 0.3);
+    --selection-color: #e4e4e7;
+    --scrollbar-thumb: rgba(139, 92, 246, 0.12);
+    --scrollbar-thumb-hover: rgba(139, 92, 246, 0.25);
+}
+
+/* ─── Ocean Theme (Light Blue) ─── */
+[data-theme="ocean"] {
+    --bg-gradient: linear-gradient(135deg, #e8f4fc 0%, #dbeafe 30%, #c7d8f0 60%, #e8f4fc 100%);
+    --bg-header: rgba(241, 248, 255, 0.85);
+    --bg-sidebar: rgba(235, 244, 255, 0.9);
+    --bg-surface: rgba(255, 255, 255, 0.6);
+    --bg-surface-solid: rgba(255, 255, 255, 0.95);
+    --bg-card: rgba(255, 255, 255, 0.55);
+    --bg-card-hover: rgba(255, 255, 255, 0.7);
+    --bg-input: rgba(255, 255, 255, 0.5);
+    --bg-input-focus: rgba(255, 255, 255, 0.75);
+    --bg-dropdown: rgba(255, 255, 255, 0.97);
+    --bg-btn-hover: rgba(59, 130, 246, 0.06);
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --text-heading: #0c1526;
+    --text-label: #334155;
+
+    --border-subtle: rgba(59, 130, 246, 0.08);
+    --border-medium: rgba(59, 130, 246, 0.12);
+    --border-input: rgba(59, 130, 246, 0.1);
+    --border-input-focus: rgba(59, 130, 246, 0.3);
+
+    --blob-1: rgba(59, 130, 246, 0.08);
+    --blob-2: rgba(99, 102, 241, 0.06);
+    --blob-3: rgba(56, 189, 248, 0.06);
+    --blob-grid: rgba(59, 130, 246, 0.15);
+    --blob-horizon: rgba(59, 130, 246, 0.05);
+
+    --chat-user-bg: rgba(59, 130, 246, 0.08);
+    --chat-ai-bg: rgba(255, 255, 255, 0.5);
+    --chat-user-border: rgba(59, 130, 246, 0.15);
+    --chat-ai-border: rgba(59, 130, 246, 0.08);
+
+    --selection-bg: rgba(59, 130, 246, 0.2);
+    --selection-color: #0f172a;
+    --scrollbar-thumb: rgba(59, 130, 246, 0.15);
+    --scrollbar-thumb-hover: rgba(59, 130, 246, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════ */
+
 html,
 body,
 #root {
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    background-color: #02040a;
+    background: var(--bg-gradient);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--text-primary);
+    transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* ─── Scrollbar ─── */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+/* ─── Keyframe Animations ─── */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    25% {
+        transform: translateY(-12px) rotate(1deg);
+    }
+
+    50% {
+        transform: translateY(-6px) rotate(-1deg);
+    }
+
+    75% {
+        transform: translateY(-18px) rotate(0.5deg);
+    }
+}
+
+@keyframes gentlePulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(99, 149, 255, 0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px 4px rgba(99, 149, 255, 0.15);
+    }
+}
+
+@keyframes orbitSlow {
+    0% {
+        transform: rotate(0deg) translateX(40px) rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg) translateX(40px) rotate(-360deg);
+    }
+}
+
+@keyframes typingDot {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    30% {
+        transform: translateY(-6px);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.3;
+    }
+}
+
+/* ─── Utility Animations ─── */
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-gentle-pulse {
+    animation: gentlePulse 4s ease-in-out infinite;
+}
+
+.animate-gradient {
+    animation: gradientShift 8s ease infinite;
+    background-size: 200% 200%;
+}
+
+.animate-shimmer {
+    animation: shimmer 3s linear infinite;
+}
+
+.animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
+}
+
+.animate-orbit {
+    animation: orbitSlow 20s linear infinite;
+}
+
+.animate-fadeSlideUp {
+    animation: fadeSlideUp 0.6s ease-out forwards;
+}
+
+/* ─── Selection ─── */
+::selection {
+    background: var(--selection-bg);
+    color: var(--selection-color);
 }

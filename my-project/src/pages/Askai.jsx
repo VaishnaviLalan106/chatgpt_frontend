@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams, useOutletContext } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Send,
     User,
-    Bot,
-    Loader2,
-    Trash2,
-    MessageSquare,
-    Lock
+    Lock,
+    Sparkles
 } from "lucide-react";
 import { API_BASE } from "../config";
-// import { useChatHistory } from "../hooks/useChatHistory"; // Removed
 
 const Askai = () => {
     const { isLoggedIn, createChat, fetchHistory } = useOutletContext();
@@ -25,7 +22,7 @@ const Askai = () => {
     const [showAuthPrompt, setShowAuthPrompt] = useState(false);
     const messagesEndRef = useRef(null);
     const hasFiredInitial = useRef(false);
-    // const { createChat, fetchHistory } = useChatHistory(); // Removed
+    const isSending = useRef(false);      // guards against chatId useEffect wiping optimistic messages
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,8 +32,10 @@ const Askai = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Load chat history if chatId is present
+    // Load chat history if chatId is present — BUT skip if we're mid-send
     useEffect(() => {
+        if (isSending.current) return;         // don't wipe optimistic messages
+
         const fetchChatMessages = async () => {
             if (!chatId || !isLoggedIn) {
                 setMessages([]);
@@ -81,22 +80,27 @@ const Askai = () => {
             return;
         }
 
+        isSending.current = true;              // prevent chatId useEffect from wiping messages
         let currentChatId = chatId;
+        let isNewChat = false;
 
-        // If no chat ID, create a new chat first
+        // If no chat ID, create a new chat first with a temporary title
         if (!currentChatId) {
+            isNewChat = true;
             const title = query.length > 30 ? query.substring(0, 30) + "..." : query;
             const newChat = await createChat(title);
             if (newChat) {
                 currentChatId = newChat.id;
-                // Update URL without reloading
                 navigate(`/ask-ai?chatId=${newChat.id}`, { replace: true });
             } else {
-                // Failed to create chat
+                isSending.current = false;
                 setMessages(prev => [...prev, { role: "assistant", content: "Failed to start new chat. Please try again." }]);
                 return;
             }
         }
+
+        // Capture current messages as history BEFORE adding user message
+        const conversationHistory = messages.map(m => ({ role: m.role, content: m.content }));
 
         // Add user message to UI immediately
         const userMessage = { role: "user", content: query };
@@ -107,17 +111,7 @@ const Askai = () => {
         try {
             const token = localStorage.getItem("access_token");
 
-            // 1. Save user message to backend
-            await fetch(`${API_BASE}/chats/${currentChatId}/messages`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ role: "user", content: query })
-            });
-
-            // 2. Get AI response
+            // Get AI response — backend stores both messages and uses history for context
             const response = await fetch(`${API_BASE}/ask`, {
                 method: "POST",
                 headers: {
@@ -125,8 +119,10 @@ const Askai = () => {
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    chat_id: currentChatId,
                     message: query,
-                    system_prompt: "You are Dobby, a friendly, warm, and conversational AI assistant. Talk naturally like a real person — use casual language, emojis, and keep things fun and engaging. Be concise but helpful. Do NOT use markdown formatting like headers, bullet points, or bold text. Just talk like a human friend would in a chat."
+                    history: conversationHistory,
+                    system_prompt: "You are Dobby, a friendly, warm, and conversational AI assistant. Talk naturally like a real person — use casual language, emojis, and keep things fun and engaging. Be concise but helpful. Do NOT use markdown formatting like headers, bullet points, or bold text. Just talk like a human friend would in a chat. Remember and reference our earlier conversation naturally."
                 }),
             });
 
@@ -135,20 +131,15 @@ const Askai = () => {
             const data = await response.json();
             const aiContent = data.response || "Hmm, I couldn't figure that out 🤔";
 
-            // 3. Save AI response to backend
-            await fetch(`${API_BASE}/chats/${currentChatId}/messages`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ role: "assistant", content: aiContent })
-            });
-
             setMessages((prev) => [...prev, { role: "assistant", content: aiContent }]);
 
             // Refresh sidebar history
             fetchHistory();
+
+            // Auto-generate title for new chats (fire-and-forget, don't block UI)
+            if (isNewChat) {
+                autoGenerateTitle(currentChatId, query, aiContent, token);
+            }
 
         } catch (error) {
             console.error("AI Error:", error);
@@ -158,122 +149,216 @@ const Askai = () => {
             ]);
         } finally {
             setLoading(false);
+            isSending.current = false;         // allow chatId useEffect to work again
+        }
+    };
+
+    // Fire-and-forget title generation
+    const autoGenerateTitle = async (chatIdForTitle, userMsg, aiReply, token) => {
+        try {
+            const resp = await fetch(`${API_BASE}/generate-title`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    chat_id: chatIdForTitle,
+                    user_message: userMsg,
+                    ai_response: aiReply
+                })
+            });
+            if (resp.ok) {
+                // Refresh sidebar to show the new AI-generated title
+                fetchHistory();
+            }
+        } catch (err) {
+            console.error("Auto-title failed (non-critical):", err);
         }
     };
 
     return (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar pt-16 pb-6">
-                <div className="max-w-3xl mx-auto px-6 space-y-8">
+            {/* ─── Messages ─── */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pt-8 md:pt-14 pb-6">
+                <div className="max-w-3xl mx-auto px-4 md:px-6 space-y-5 md:space-y-6">
+                    {/* Empty State */}
                     {messages.length === 0 && !loading && (
-                        <div className="flex flex-col items-center justify-center py-28 space-y-4 animate-[fadeIn_0.5s_ease-out]">
-                            <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                <MessageSquare className="w-10 h-10 text-zinc-600" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="flex flex-col items-center justify-center py-20 md:py-28 space-y-5"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 rounded-full animate-gentle-pulse"
+                                    style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%)', filter: 'blur(15px)' }} />
+                                <div className="relative p-5 rounded-2xl animate-breathe"
+                                    style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                                    <Sparkles className="w-10 h-10 text-blue-400" />
+                                </div>
                             </div>
-                            <p className="text-zinc-500 text-sm font-medium">Start a conversation with Dobby...</p>
-                        </div>
+                            <div className="text-center">
+                                <h3 className="text-lg font-bold text-white mb-1">Start a conversation</h3>
+                                <p className="text-slate-500 text-sm">Ask me anything — I'm Dobby, your friendly AI ✨</p>
+                            </div>
+                        </motion.div>
                     )}
 
-                    {messages.map((msg, idx) => (
-                        <div
-                            key={idx}
-                            className={`flex gap-3 animate-[slideUp_0.3s_ease-out] ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                            <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 ${msg.role === 'user'
-                                    ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
-                                    : 'bg-white/10 text-purple-400 border border-white/10'
-                                    }`}>
-                                    {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    {/* Messages */}
+                    <AnimatePresence>
+                        {messages.map((msg, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.05 }}
+                                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                                <div className={`flex gap-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                    {/* Avatar */}
+                                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 transition-all ${msg.role === 'user' ? '' : 'animate-breathe'
+                                        }`}
+                                        style={msg.role === 'user'
+                                            ? { background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }
+                                            : { background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.15)' }
+                                        }
+                                    >
+                                        {msg.role === 'user'
+                                            ? <User className="w-4 h-4 text-white" />
+                                            : <Sparkles className="w-4 h-4 text-violet-400" />
+                                        }
+                                    </div>
+                                    {/* Bubble */}
+                                    <div className={`px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
+                                        ? 'rounded-2xl rounded-tr-md'
+                                        : 'rounded-2xl rounded-tl-md'
+                                        }`}
+                                        style={msg.role === 'user'
+                                            ? { background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.1))', color: 'var(--text-primary)', border: '1px solid var(--chat-user-border)' }
+                                            : { background: 'var(--chat-ai-bg)', color: 'var(--text-secondary)', border: '1px solid var(--chat-ai-border)' }
+                                        }
+                                    >
+                                        {msg.content}
+                                    </div>
                                 </div>
-                                <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
-                                    ? 'bg-blue-600/20 text-white border border-blue-500/20 rounded-tr-sm'
-                                    : 'bg-white/[0.06] text-zinc-200 border border-white/5 rounded-tl-sm'
-                                    }`}>
-                                    {msg.content}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
 
+                    {/* Typing Indicator */}
                     {loading && (
-                        <div className="flex gap-3 animate-pulse">
-                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
-                                <Bot className="w-4 h-4 text-purple-400" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex gap-3"
+                        >
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center animate-breathe"
+                                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                                <Sparkles className="w-4 h-4 text-violet-400" />
                             </div>
-                            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/[0.06] text-zinc-400 flex items-center gap-3 border border-white/5">
-                                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                                <span className="text-sm">Dobby is thinking...</span>
+                            <div className="px-5 py-3.5 rounded-2xl rounded-tl-md flex items-center gap-2"
+                                style={{ background: 'var(--chat-ai-bg)', border: '1px solid var(--chat-ai-border)' }}>
+                                <div className="flex gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-blue-400" style={{ animation: 'typingDot 1.2s ease-in-out infinite' }} />
+                                    <span className="w-2 h-2 rounded-full bg-indigo-400" style={{ animation: 'typingDot 1.2s ease-in-out 0.2s infinite' }} />
+                                    <span className="w-2 h-2 rounded-full bg-violet-400" style={{ animation: 'typingDot 1.2s ease-in-out 0.4s infinite' }} />
+                                </div>
+                                <span className="text-sm text-slate-500 ml-2">Dobby is thinking...</span>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
                     <div ref={messagesEndRef} />
                 </div>
             </div>
 
-            {/* Input Area */}
-            <div className="px-6 pb-6 pt-2 flex-shrink-0">
+            {/* ─── Input Area ─── */}
+            <div className="px-4 md:px-6 pb-4 md:pb-6 pt-2 flex-shrink-0">
                 <div className="relative group max-w-3xl mx-auto">
-                    <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-sm opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
-                    <div className="relative bg-[#0c0f16]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 flex items-center gap-2 shadow-2xl">
+                    <div className="absolute -inset-[1px] rounded-2xl blur-sm opacity-0 group-focus-within:opacity-30 transition-all duration-500"
+                        style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }} />
+                    <div className="relative flex items-center gap-2 p-2 rounded-2xl shadow-2xl"
+                        style={{
+                            background: 'var(--bg-header)',
+                            backdropFilter: 'blur(40px)',
+                            border: '1px solid var(--border-medium)',
+                        }}>
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
                             placeholder="Send a message..."
-                            className="flex-1 bg-transparent border-none text-white placeholder-zinc-600 outline-none text-sm font-medium py-2 px-3"
-                            drum disabled={loading}
+                            className="flex-1 bg-transparent border-none placeholder-slate-600 outline-none text-sm font-medium py-2 px-3"
+                            style={{ color: 'var(--text-primary)' }}
+                            disabled={loading}
                         />
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => handleSend()}
                             disabled={loading || !input.trim()}
-                            className={`p-2.5 rounded-xl transition-all duration-300 ${input.trim() && !loading ? "bg-blue-600 text-white shadow-lg hover:bg-blue-500" : "bg-white/5 text-zinc-700"}`}
+                            className="p-2.5 rounded-xl transition-all duration-300"
+                            style={{
+                                background: input.trim() && !loading ? 'linear-gradient(135deg, #3b82f6, #6366f1)' : 'rgba(148,163,184,0.06)',
+                                color: input.trim() && !loading ? '#fff' : 'rgba(148,163,184,0.3)',
+                                boxShadow: input.trim() && !loading ? '0 4px 16px rgba(59,130,246,0.3)' : 'none',
+                            }}
                         >
                             <Send className="w-4 h-4" />
-                            drum                        </button>
+                        </motion.button>
                     </div>
                 </div>
             </div>
-            {/* Auth Prompt Modal */}
-            {showAuthPrompt && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]" onClick={() => setShowAuthPrompt(false)}>
-                    <div className="bg-[#0c0f16] border border-white/10 rounded-3xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl animate-[slideUp_0.3s_ease-out]" onClick={e => e.stopPropagation()}>
-                        <div className="w-14 h-14 mx-auto mb-5 bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-white/10 rounded-2xl flex items-center justify-center">
-                            <Lock className="w-7 h-7 text-blue-400" />
-                        </div>
-                        <h3 className="text-xl font-black text-white mb-2">Sign in to chat</h3>
-                        <p className="text-zinc-400 text-sm mb-6">Create an account or log in to start chatting with Dobby AI</p>
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={() => navigate("/signup")}
-                                className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
-                            >
-                                Sign Up — It's Free
-                            </button>
-                            <button
-                                onClick={() => navigate("/login")}
-                                className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-zinc-300 font-bold text-sm hover:bg-white/10 transition-all"
-                            >
-                                I already have an account
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @keyframes slideUp {
-                    from { opacity: 0; transform: translateY(12px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-            ` }} />
+            {/* ─── Auth Modal ─── */}
+            <AnimatePresence>
+                {showAuthPrompt && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+                        style={{ background: 'rgba(0,0,0,0.5)' }}
+                        onClick={() => setShowAuthPrompt(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.3 }}
+                            className="p-8 max-w-sm w-full mx-4 text-center rounded-3xl shadow-2xl"
+                            style={{ background: 'var(--bg-dropdown)', backdropFilter: 'blur(40px)', border: '1px solid var(--border-medium)' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center"
+                                style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15))', border: '1px solid rgba(148,163,184,0.08)' }}>
+                                <Lock className="w-7 h-7 text-blue-400" />
+                            </div>
+                            <h3 className="text-xl font-extrabold text-white mb-2">Sign in to chat</h3>
+                            <p className="text-slate-400 text-sm mb-6">Create an account or log in to start chatting with Dobby AI</p>
+                            <div className="flex flex-col gap-3">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => navigate("/signup")}
+                                    className="w-full py-3 rounded-xl text-white font-bold text-sm shadow-lg"
+                                    style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}
+                                >
+                                    Sign Up — It's Free
+                                </motion.button>
+                                <button
+                                    onClick={() => navigate("/login")}
+                                    className="w-full py-3 rounded-xl text-slate-300 font-bold text-sm hover:bg-white/5 transition-all"
+                                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border-medium)' }}
+                                >
+                                    I already have an account
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

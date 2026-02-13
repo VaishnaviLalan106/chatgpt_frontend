@@ -65,7 +65,6 @@ export const useChatHistory = () => {
 
             if (response.ok) {
                 const newChat = await response.json();
-                setHistory(prev => [newChat, ...prev]);
                 return newChat;
             }
         } catch (err) {
