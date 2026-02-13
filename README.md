@@ -38,10 +38,10 @@ The frontend communicates with a separately deployed backend API that securely i
 
 ## 📦 Installation & Setup (Optional)
 
-1. Clone this repository  
+1. **Clone this repository** 
    git clone <your-frontend-repo-url>
-2. Install dependencies
+2. **Install dependencies**
    npm install
-3. Start development server
+3. **Start development server**
    npm start
-4. Update backend API URL in your Axios cofig.
+4. **Update backend API URL in your Axios cofig.**
