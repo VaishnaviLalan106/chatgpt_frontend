@@ -5,6 +5,8 @@ import Signup from './pages/Signup.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Askai from './pages/Askai.jsx'
 import DashboardLayout from './components/DashboardLayout.jsx'
+import About from './pages/About.jsx'
+import Contact from './pages/Contact.jsx'
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/ask-ai" element={<Askai />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
         </Route>
       </Routes>
     </Router>

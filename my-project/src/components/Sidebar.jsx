@@ -1,26 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
     Plus,
     Search,
-    Image as ImageIcon,
-    LayoutGrid,
-    Code,
-    Archive,
     LogOut,
     History,
     Home,
     Sparkles,
     MessageSquare,
-    Trash2
+    Trash2,
+    Info,
+    Mail,
+    PanelLeftClose,
+    X
 } from "lucide-react";
-import { useChatHistory } from "../hooks/useChatHistory";
 
-const Sidebar = ({ isOpen, isLoggedIn, onLogout, history, deleteChat, loading }) => {
+
+const Sidebar = ({ isOpen, setIsOpen, isLoggedIn, onLogout, history, deleteChat, loading, fetchHistory }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
+    const [searchParams] = useSearchParams();
     const currentChatId = searchParams.get("chatId");
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Trigger search when query changes (with a small delay/on enter/button)
+    // For now, let's do it on button click or when user stops typing
+    useEffect(() => {
+        if (!isLoggedIn) return;
+        const delayDebounceFn = setTimeout(() => {
+            fetchHistory(searchQuery);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, fetchHistory, isLoggedIn]);
 
     const handleChatClick = (chatId) => {
         navigate(`/ask-ai?chatId=${chatId}`);
@@ -37,93 +49,140 @@ const Sidebar = ({ isOpen, isLoggedIn, onLogout, history, deleteChat, loading })
     };
 
     return (
-        <aside className={`relative z-20 transition-all duration-500 border-r border-white/5 bg-black/40 backdrop-blur-3xl flex flex-col ${isOpen ? "w-64 p-4" : "w-0 p-0 overflow-hidden border-none"}`}>
-            {/* Brand */}
-            <div className="flex items-center gap-2 mb-5 px-1">
-                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs font-black text-zinc-300 tracking-tight italic uppercase">DOBBY AI</span>
-            </div>
+        <aside className={`relative z-40 h-full transition-all duration-500 border-r border-white/5 bg-black/40 backdrop-blur-3xl flex flex-col ${isOpen ? "w-72" : "w-0 p-0 overflow-hidden border-none"}`}>
+            <div className={`flex flex-col h-full w-72 p-4 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 mb-4">
-                <button
-                    onClick={() => navigate("/")}
-                    className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl transition-all group ${location.pathname === '/' ? 'bg-white/10 border border-white/10 text-white' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
-                >
-                    <Home className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Dashboard</span>
-                </button>
-                <button
-                    onClick={() => navigate("/ask-ai")}
-                    className="flex items-center gap-3 w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white group"
-                >
-                    <Plus className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors">New Chat</span>
-                </button>
-            </div>
-
-            {/* Nav Items */}
-            <div className="flex flex-col gap-0.5 mb-4">
-                <SidebarItem icon={<Search className="w-4 h-4" />} label="Search" />
-                <SidebarItem icon={<ImageIcon className="w-4 h-4" />} label="Gallery" />
-                <SidebarItem icon={<LayoutGrid className="w-4 h-4" />} label="Apps" />
-                <SidebarItem icon={<Code className="w-4 h-4" />} label="Codex" />
-                <SidebarItem icon={<Archive className="w-4 h-4" />} label="Vault" />
-            </div>
-
-            {/* Chat History */}
-            <div className="flex-1 min-h-0 flex flex-col">
-                <div className="flex items-center gap-2 text-zinc-500 font-black uppercase tracking-widest text-[8px] mb-2 px-3">
-                    <History className="w-3 h-3" />
-                    Recent History
-                </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-0.5">
-                    {history.length > 0 ? (
-                        history.map((chat) => (
-                            <div
-                                key={chat.id}
-                                onClick={() => handleChatClick(chat.id)}
-                                className={`group flex items-center gap-2 w-full px-3 py-2 rounded-lg cursor-pointer transition-all ${currentChatId == chat.id ? "bg-blue-600/10 text-blue-400" : "text-zinc-400 hover:bg-white/5 hover:text-white"}`}
-                            >
-                                <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
-                                <span className="flex-1 text-[11px] font-bold truncate tracking-tight">{chat.title}</span>
-                                <button
-                                    onClick={(e) => handleDeleteChat(e, chat.id)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/10 hover:text-red-400 rounded transition-all"
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="px-3 py-2 text-[10px] text-zinc-600 italic">No recent chats</p>
-                    )}
-                </div>
-            </div>
-
-            {/* Bottom */}
-            {isLoggedIn && (
-                <div className="pt-3 border-t border-white/5 mt-3">
+                {/* Header: Toggle + Brand */}
+                <div className="flex items-center justify-between gap-2 mb-6 px-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Sparkles className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-xs font-black text-white tracking-widest italic uppercase">Dobby AI</span>
+                    </div>
                     <button
-                        onClick={onLogout}
-                        className="flex items-center gap-3 w-full px-3 py-2.5 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-all group"
+                        onClick={() => setIsOpen(false)}
+                        className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
                     >
-                        <LogOut className="w-4 h-4 group-hover:text-red-400 transition-colors" />
-                        <span className="font-black uppercase tracking-widest text-[8px]">Log Out</span>
+                        <PanelLeftClose className="w-4 h-4" />
                     </button>
                 </div>
-            )}
+
+                {/* Primary Actions */}
+                <div className="flex flex-col gap-2 mb-6">
+                    <button
+                        onClick={() => navigate("/")}
+                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-2xl transition-all group ${location.pathname === '/' ? 'bg-white/10 border border-white/10 text-white shadow-xl' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+                    >
+                        <Home className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Dashboard</span>
+                    </button>
+                    <button
+                        onClick={() => navigate("/ask-ai")}
+                        className={`flex items-center gap-3 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-white group ${location.pathname === '/ask-ai' ? 'ring-1 ring-blue-500/50' : ''}`}
+                    >
+                        <Plus className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300 group-hover:text-white">New Chat</span>
+                    </button>
+                </div>
+
+                {/* Search History */}
+                <div className="relative mb-4">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <Search className="w-3.5 h-3.5 text-zinc-500" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search chats..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white/5 border border-white/5 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-white/10 focus:bg-white/10 transition-all"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery("")}
+                            className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-white"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Chat History Section */}
+                <div className="flex-1 min-h-0 flex flex-col mb-4">
+                    <div className="flex items-center gap-2 text-zinc-600 font-extrabold uppercase tracking-[0.2em] text-[8px] mb-3 px-3">
+                        <History className="w-3 h-3 opacity-50" />
+                        History
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+                        {Array.isArray(history) && history.length > 0 ? (
+                            history.map((chat) => (
+                                <div
+                                    key={chat.id}
+                                    onClick={() => handleChatClick(chat.id)}
+                                    className={`group flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all border border-transparent ${currentChatId == chat.id ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"}`}
+                                >
+                                    <MessageSquare className={`w-3.5 h-3.5 flex-shrink-0 ${currentChatId == chat.id ? "text-blue-400" : "opacity-40"}`} />
+                                    <span className="flex-1 text-[11px] font-bold truncate tracking-tight">{chat.title}</span>
+                                    <button
+                                        onClick={(e) => handleDeleteChat(e, chat.id)}
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-all"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="px-3 py-10 text-center space-y-2">
+                                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">No chats found</p>
+                                {searchQuery && <p className="text-[9px] text-zinc-700">Try a different word</p>}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Navigation Links */}
+                <div className="flex flex-col gap-1.5 mb-2 pt-4 border-t border-white/5">
+                    <SidebarItem
+                        icon={<Info className="w-4 h-4" />}
+                        label="About Dobby"
+                        active={location.pathname === '/about'}
+                        onClick={() => navigate("/about")}
+                    />
+                    <SidebarItem
+                        icon={<Mail className="w-4 h-4" />}
+                        label="Contact Us"
+                        active={location.pathname === '/contact'}
+                        onClick={() => navigate("/contact")}
+                    />
+                </div>
+
+                {/* Footer / User */}
+                {isLoggedIn && (
+                    <div className="pt-3 border-t border-white/5 mt-2">
+                        <button
+                            onClick={onLogout}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all group"
+                        >
+                            <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            <span className="font-black uppercase tracking-widest text-[9px]">Sign Out</span>
+                        </button>
+                    </div>
+                )}
+            </div>
         </aside>
     );
 };
 
-const SidebarItem = ({ icon, label }) => (
-    <button className="flex items-center gap-3 w-full px-4 py-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
-        <span className="group-hover:text-blue-400 transition-colors">{icon}</span>
+const SidebarItem = ({ icon, label, onClick, active }) => (
+    <button
+        onClick={onClick}
+        className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl transition-all group ${active ? 'bg-white/5 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+    >
+        <span className={`${active ? 'text-blue-400' : 'group-hover:text-blue-400'} transition-colors`}>{icon}</span>
         <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
     </button>
 );
 
 export default Sidebar;
+

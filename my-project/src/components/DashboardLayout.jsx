@@ -23,12 +23,23 @@ const DashboardLayout = () => {
     const profileRef = useRef(null);
 
     // Lifted state for chat history
-    const { history, fetchHistory, createChat, deleteChat, loading } = useChatHistory();
+    const { history, fetchHistory, createChat, deleteChat, clearHistory, loading } = useChatHistory();
 
+    // Sync login state with localStorage on route changes and storage events
     useEffect(() => {
-        const token = localStorage.getItem("access_token");
-        setIsLoggedIn(!!token);
-    }, [location]);
+        const checkAuth = () => {
+            const token = localStorage.getItem("access_token");
+            const loggedIn = !!token;
+            console.log("Checking auth status. Token exists:", loggedIn, "Current state:", isLoggedIn);
+            if (loggedIn !== isLoggedIn) {
+                setIsLoggedIn(loggedIn);
+            }
+        };
+
+        checkAuth();
+        window.addEventListener('storage', checkAuth);
+        return () => window.removeEventListener('storage', checkAuth);
+    }, [location, isLoggedIn]);
 
     // Fetch history when logged in
     useEffect(() => {
@@ -48,12 +59,12 @@ const DashboardLayout = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token_type");
-        localStorage.removeItem("refresh_token");
-        setIsLoggedIn(false);
-        setIsProfileOpen(false);
-        navigate("/");
+        console.log("Logging out and forcing fresh state reset...");
+        localStorage.clear();
+        // Clear session storage as well just in case
+        sessionStorage.clear();
+        // Force complete page reload at the root to ensure all React state is totally gone
+        window.location.href = "/";
     };
 
     return (
@@ -65,12 +76,27 @@ const DashboardLayout = () => {
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:60px_60px]"></div>
             </div>
 
+            {/* Sidebar Toggle Overlay (When Closed) */}
+            {!isSidebarOpen && (
+                <div className="fixed top-4 left-4 z-50 animate-[fadeIn_0.3s_ease-out]">
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="p-3 bg-white/5 border border-white/10 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/10 transition-all shadow-2xl backdrop-blur-xl group"
+                        title="Open Sidebar"
+                    >
+                        <PanelLeftOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    </button>
+                </div>
+            )}
+
             {/* Sidebar */}
             <Sidebar
                 isOpen={isSidebarOpen}
+                setIsOpen={setIsSidebarOpen}
                 isLoggedIn={isLoggedIn}
                 onLogout={handleLogout}
                 history={history}
+                fetchHistory={fetchHistory}
                 deleteChat={deleteChat}
                 loading={loading}
             />
@@ -78,42 +104,34 @@ const DashboardLayout = () => {
             {/* Main Area */}
             <div className="relative z-10 flex-1 flex flex-col h-full min-h-0">
                 {/* Top Bar */}
-                <header className="flex items-center h-14 px-4 border-b border-white/5 bg-black/30 backdrop-blur-xl flex-shrink-0">
-                    {/* Left: Toggle + Brand */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
-                        >
-                            {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-                        </button>
+                <header className="flex items-center h-16 px-6 border-b border-white/5 bg-black/30 backdrop-blur-xl flex-shrink-0">
+                    {/* Left: Brand (No toggle here, it's floating or in sidebar) */}
+                    <div className="flex items-center gap-4">
                         <button onClick={() => navigate("/")} className="flex items-center gap-2 group">
-                            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                                 <Sparkles className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-sm font-black text-white tracking-tight italic uppercase hidden sm:block">DOBBY</span>
+                            <span className="text-sm font-black text-white tracking-widest italic uppercase">DOBBY</span>
                         </button>
                     </div>
 
                     {/* Right: Auth / Profile */}
-                    <div className="flex items-center gap-3 ml-auto">
+                    <div className="flex-1 flex justify-end items-center gap-3">
                         {!isLoggedIn ? (
-                            <>
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => navigate("/login")}
-                                    className="flex items-center gap-2 px-4 py-2 text-zinc-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider"
+                                    className="px-4 py-2 text-zinc-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider"
                                 >
-                                    <LogIn className="w-4 h-4 text-blue-400" />
                                     Login
                                 </button>
                                 <button
                                     onClick={() => navigate("/signup")}
-                                    className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-lg"
+                                    className="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white text-xs font-bold uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-lg"
                                 >
-                                    <UserPlus className="w-4 h-4" />
                                     Sign Up
                                 </button>
-                            </>
+                            </div>
                         ) : (
                             <div className="relative" ref={profileRef}>
                                 <button

@@ -35,57 +35,58 @@ const Dashboard = () => {
     ];
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 overflow-y-auto custom-scrollbar">
-            <div className="w-full max-w-3xl mx-auto flex flex-col items-center justify-center py-16 animate-[slideUp_0.6s_ease-out]">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 overflow-hidden">
+            <div className="w-full max-w-3xl mx-auto flex flex-col items-center animate-[slideUp_0.6s_ease-out] -mt-12">
                 {/* Title */}
-                <div className="mb-10 text-center">
-                    <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tighter leading-tight">
+                <div className="mb-12 text-center">
+                    <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter leading-tight">
                         What can I help{" "}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
                             you with?
                         </span>
                     </h1>
-                    <p className="text-zinc-500 text-sm font-medium">Ask anything — I'm here to help ✨</p>
+                    <p className="text-zinc-500 text-sm md:text-base font-medium">Ask anything — I'm here to help ✨</p>
                 </div>
 
                 {/* Suggestions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-12">
                     {promptPills.map((pill, idx) => (
                         <button
                             key={idx}
                             onClick={() => handleSearch(pill.label)}
-                            className="flex items-center gap-3 p-4 bg-white/[0.03] border border-white/5 rounded-2xl text-left hover:bg-white/[0.06] hover:border-white/15 hover:-translate-y-0.5 transition-all duration-300 group"
+                            className="flex items-center gap-4 p-5 bg-white/[0.03] border border-white/5 rounded-[2rem] text-left hover:bg-white/[0.06] hover:border-white/15 hover:-translate-y-1 transition-all duration-300 group"
                             style={{ animationDelay: `${idx * 100}ms` }}
                         >
-                            <div className="p-2 bg-white/5 rounded-xl text-zinc-500 group-hover:text-blue-400 transition-colors">
+                            <div className="p-3 bg-white/5 rounded-2xl text-zinc-500 group-hover:text-blue-400 transition-colors">
                                 {pill.icon}
                             </div>
-                            <span className="text-xs font-semibold text-zinc-400 group-hover:text-white transition-colors">{pill.label}</span>
+                            <span className="text-xs md:text-sm font-semibold text-zinc-400 group-hover:text-white transition-colors leading-relaxed">{pill.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {/* Chat Input */}
-                <div className="w-full relative group">
-                    <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-sm opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
-                    <div className="relative bg-[#0c0f16]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 flex items-center gap-2">
-                        <button className="p-2 text-zinc-500 hover:text-blue-400 transition-colors">
-                            <Plus className="w-5 h-5" />
-                        </button>
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            placeholder="Ask Dobby anything..."
-                            className="flex-1 bg-transparent border-none text-white placeholder-zinc-600 outline-none text-sm font-medium py-2"
-                        />
-                        <button
-                            onClick={() => handleSearch()}
-                            className={`p-2.5 rounded-xl transition-all duration-300 ${message.trim() ? "bg-blue-600 text-white shadow-lg hover:bg-blue-500" : "bg-white/5 text-zinc-700"}`}
-                        >
-                            <Send className="w-4 h-4" />
-                        </button>
+                <div className="absolute bottom-6 left-0 right-0 px-6">
+                    <div className="max-w-3xl mx-auto relative group">
+                        <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-sm opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
+                        <div className="relative bg-[#0c0f16]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 flex items-center gap-2">
+                            <button className="p-2 text-zinc-500 hover:text-blue-400 transition-colors">
+                                <Plus className="w-5 h-5" />
+                            </button>
+                            <input
+                                type="text"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                placeholder="Ask Dobby anything..."
+                                className="flex-1 bg-transparent border-none text-white placeholder-zinc-600 outline-none text-sm font-medium py-2"
+                            />
+                            <button
+                                onClick={() => handleSearch()}
+                                className={`p-2.5 rounded-xl transition-all duration-300 ${message.trim() ? "bg-blue-600 text-white shadow-lg hover:bg-blue-500" : "bg-white/5 text-zinc-700"}`}
+                            >
+                                <Send className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -115,11 +116,6 @@ const Dashboard = () => {
                         </div>
                     </div>
                 )}
-
-                {/* Subtitle */}
-                <p className="mt-5 text-[10px] text-zinc-600 text-center">
-                    Dobby AI may produce inaccurate information.
-                </p>
             </div>
 
             <style dangerouslySetInnerHTML={{

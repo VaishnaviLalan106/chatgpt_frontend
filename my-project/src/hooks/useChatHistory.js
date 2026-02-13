@@ -6,36 +6,41 @@ export const useChatHistory = () => {
     const [error, setError] = useState(null);
 
     // Fetch all chats
-    const fetchHistory = useCallback(async () => {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-
+    const fetchHistory = useCallback(async (searchQuery = "") => {
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:8000/chats/", {
+            const token = localStorage.getItem("access_token");
+            console.log("Fetching history. Query:", searchQuery, "Token present:", !!token);
+
+            const url = searchQuery
+                ? `http://localhost:8000/chats/?q=${encodeURIComponent(searchQuery)}`
+                : "http://localhost:8000/chats/";
+
+            const response = await fetch(url, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
             });
 
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = "/login";
+            console.log("Fetch history response status:", response.status);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error("Unauthorized - clearing history");
+                    setHistory([]);
+                }
                 return;
             }
 
-            if (response.ok) {
-                const data = await response.json();
-                setHistory(data);
-            }
-        } catch (err) {
-            console.error("Failed to fetch history:", err);
-            setError(err.message);
+            const data = await response.json();
+            console.log("Fetched history data:", data);
+            setHistory(data);
+        } catch (error) {
+            console.error("Error fetching history:", error);
         } finally {
             setLoading(false);
         }
     }, []);
-
     // Create a new chat
     const createChat = async (title) => {
         const token = localStorage.getItem("access_token");
@@ -89,10 +94,10 @@ export const useChatHistory = () => {
         }
     };
 
-    // Load history on mount
-    useEffect(() => {
-        fetchHistory();
-    }, [fetchHistory]);
+    // Clear history
+    const clearHistory = useCallback(() => {
+        setHistory([]);
+    }, []);
 
     return {
         history,
@@ -100,6 +105,7 @@ export const useChatHistory = () => {
         error,
         fetchHistory,
         createChat,
-        deleteChat
+        deleteChat,
+        clearHistory
     };
 };

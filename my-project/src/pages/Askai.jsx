@@ -160,8 +160,8 @@ const Askai = () => {
     return (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="max-w-3xl mx-auto px-6 py-6 space-y-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pt-16 pb-6">
+                <div className="max-w-3xl mx-auto px-6 space-y-8">
                     {messages.length === 0 && !loading && (
                         <div className="flex flex-col items-center justify-center py-28 space-y-4 animate-[fadeIn_0.5s_ease-out]">
                             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -209,7 +209,7 @@ const Askai = () => {
             </div>
 
             {/* Input Area */}
-            <div className="px-6 py-4 border-t border-white/5 bg-black/20 flex-shrink-0">
+            <div className="px-6 pb-6 pt-2 flex-shrink-0">
                 <div className="relative group max-w-3xl mx-auto">
                     <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-sm opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
                     <div className="relative bg-[#0c0f16]/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 flex items-center gap-2 shadow-2xl">
@@ -231,11 +231,7 @@ const Askai = () => {
                         </button>
                     </div>
                 </div>
-                <p className="mt-2 text-[10px] text-center text-zinc-600">
-                    Dobby AI may produce inaccurate information.
-                </p>
             </div>
-
             {/* Auth Prompt Modal */}
             {showAuthPrompt && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]" onClick={() => setShowAuthPrompt(false)}>

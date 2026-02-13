@@ -20,10 +20,10 @@ const Login = () => {
         setStatus({ loading: true, type: "", message: "" });
 
         try {
-            console.log("Attempting login to:", "http://127.0.0.1:8000/login");
+            console.log("Attempting login to:", "http://localhost:8000/login");
             console.log("Request Payload:", JSON.stringify({ email: formData.email, password: "..." }));
 
-            const response = await fetch("http://127.0.0.1:8000/login", {
+            const response = await fetch("http://localhost:8000/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -63,7 +63,7 @@ const Login = () => {
                 loading: false,
                 type: "error",
                 message: error.message === "Failed to fetch"
-                    ? "Failed to connect to backend. Please ensure the server at http://127.0.0.1:8000 is running and CORS is enabled."
+                    ? "Failed to connect to backend. Please ensure the server at http://localhost:8000 is running and CORS is enabled."
                     : "An unexpected error occurred: " + error.message
             });
         }
