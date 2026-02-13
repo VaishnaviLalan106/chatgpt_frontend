@@ -1,1 +1,3 @@
-(chatgpt-frontend-hfurqvwt8-vaishnavi-lalans-projects.vercel.app) [Live Version]
+(
+chatgpt-frontend-bice.vercel.app
+) [Live Version]
